@@ -11,6 +11,8 @@ void setup() {
   digitalWrite(10, HIGH); // sets pin 10 to be always on
 
   pinMode(LED_BUILTIN, OUTPUT); // sets built in LED to output
+
+  // hi testing github ha ha 
 }
 
 void loop() {
