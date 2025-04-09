@@ -1,0 +1,52 @@
+# thank u chatgpt<3
+
+name: Sync MAIN_ .ino Filename & Folder
+on:
+  push:
+    paths:
+      - '**/MAIN_*.ino'
+
+jobs:
+  sync-folder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get Renamed MAIN_ .ino File
+        id: getino
+        run: |
+          # Look for renamed MAIN_*.ino files (first occurrence only)
+          renamed=$(git diff --name-only --diff-filter=R HEAD^ HEAD | grep 'MAIN_.*\.ino$' | head -n1)
+          if [ -z "$renamed" ]; then
+            echo "no_ino_file=true" >> $GITHUB_OUTPUT
+          else
+            # Extract the filename and strip extension
+            base=$(basename "$renamed" .ino)
+            # Remove the MAIN_ prefix to define the folder name (adjust if you want the prefix kept)
+            derived_name=$(echo "$base" | sed 's/^MAIN_//')
+            echo "ino_file=$renamed" >> $GITHUB_OUTPUT
+            echo "base_name=$derived_name" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Rename Parent Folder
+        if: steps.getino.outputs.no_ino_file != 'true'
+        run: |
+          current_folder=$(dirname "${{ steps.getino.outputs.ino_file }}")
+          parent=$(dirname "$current_folder")
+          new_folder="$parent/${{ steps.getino.outputs.base_name }}"
+          
+          if [ "$(basename "$current_folder")" != "${{ steps.getino.outputs.base_name }}" ]; then
+            echo "Renaming folder $(basename "$current_folder") to ${{ steps.getino.outputs.base_name }}"
+            mv "$current_folder" "$new_folder"
+          else
+            echo "Folder already matches the main file name."
+          fi
+
+      - name: Commit and Push Changes
+        if: steps.getino.outputs.no_ino_file != 'true'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "Auto-rename folder to match MAIN_*.ino filename"
+          git push
