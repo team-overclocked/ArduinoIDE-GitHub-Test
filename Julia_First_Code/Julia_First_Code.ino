@@ -13,6 +13,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT); // sets built in LED to output
 
   // hi testing github ha ha 
+  // branch pull request test to auto update arduino ide! (also include namechange i hope the ide doesnt fuck it all up because of the different folder name omggg)
 }
 
 void loop() {
